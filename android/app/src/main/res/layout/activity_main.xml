@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/root" android:layout_width="match_parent" android:layout_height="match_parent">
+
+    <ScrollView android:id="@+id/connection_screen" android:layout_width="match_parent"
+        android:layout_height="match_parent" android:fillViewport="true">
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="vertical" android:padding="24dp" android:gravity="center_vertical">
+            <ImageView android:layout_width="64dp" android:layout_height="64dp"
+                android:src="@drawable/ic_octop" android:contentDescription="@string/app_name" />
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginTop="28dp" android:text="@string/connection_title"
+                android:textColor="@color/text_primary" android:textSize="30sp"
+                android:fontFamily="sans-serif-medium" />
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginTop="12dp" android:text="@string/connection_description"
+                android:textColor="@color/text_secondary" android:textSize="15sp" android:lineSpacingExtra="4dp" />
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginTop="32dp" android:orientation="vertical" android:padding="20dp"
+                android:background="@drawable/card_background">
+                <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:text="@string/server_title" android:textColor="@color/text_primary"
+                    android:textSize="18sp" android:fontFamily="sans-serif-medium" />
+                <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:layout_marginTop="22dp" android:layout_marginBottom="8dp"
+                    android:labelFor="@id/server_address" android:text="@string/server_address_label"
+                    android:textColor="@color/text_secondary" android:textSize="13sp" />
+                <EditText android:id="@+id/server_address" android:layout_width="match_parent"
+                    android:layout_height="wrap_content" android:minHeight="52dp"
+                    android:background="@drawable/input_background"
+                    android:textColor="@color/text_primary" android:textColorHint="@color/text_secondary"
+                    android:textSize="14sp" android:inputType="textUri" android:singleLine="true"
+                    android:imeOptions="actionGo" android:importantForAutofill="no" />
+                <TextView android:id="@+id/address_error" android:layout_width="match_parent"
+                    android:layout_height="wrap_content" android:layout_marginTop="8dp"
+                    android:textColor="@color/error" android:textSize="13sp" android:visibility="gone"
+                    android:accessibilityLiveRegion="polite" />
+                <Button android:id="@+id/connect" android:layout_width="match_parent"
+                    android:layout_height="52dp" android:layout_marginTop="20dp"
+                    android:background="@drawable/button_background" android:text="@string/connect"
+                    android:textColor="@color/on_accent" android:textAllCaps="false"
+                    android:textSize="15sp" android:fontFamily="sans-serif-medium" />
+            </LinearLayout>
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginTop="20dp" android:text="@string/connection_hint"
+                android:textColor="@color/text_secondary" android:textSize="13sp" android:gravity="center" />
+        </LinearLayout>
+    </ScrollView>
+
+    <LinearLayout android:id="@+id/browser_screen" android:layout_width="match_parent"
+        android:layout_height="match_parent" android:orientation="vertical" android:visibility="gone">
+        <ProgressBar android:id="@+id/page_progress" style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent" android:layout_height="3dp" android:visibility="gone"
+            android:progressTint="@color/accent" />
+        <FrameLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1">
+            <WebView android:id="@+id/browser" android:layout_width="match_parent" android:layout_height="match_parent" />
+            <LinearLayout android:id="@+id/connection_failure" android:layout_width="match_parent"
+                android:layout_height="match_parent" android:background="@color/background" android:padding="32dp"
+                android:orientation="vertical" android:gravity="center" android:visibility="gone">
+                <TextView android:id="@+id/connection_failure_message" android:layout_width="match_parent"
+                    android:layout_height="wrap_content" android:gravity="center" android:textColor="@color/text_primary"
+                    android:textSize="16sp" android:lineSpacingExtra="4dp" android:accessibilityLiveRegion="polite" />
+                <Button android:id="@+id/retry" android:layout_width="match_parent" android:layout_height="52dp"
+                    android:layout_marginTop="24dp" android:background="@drawable/button_background"
+                    android:text="@string/retry" android:textColor="@color/on_accent" android:textAllCaps="false" />
+                <Button android:id="@+id/error_change_server" android:layout_width="match_parent"
+                    android:layout_height="52dp" android:layout_marginTop="12dp" android:text="@string/change_server"
+                    android:textColor="@color/text_primary" android:textAllCaps="false"
+                    style="?android:attr/borderlessButtonStyle" />
+            </LinearLayout>
+        </FrameLayout>
+    </LinearLayout>
+</FrameLayout>

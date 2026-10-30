@@ -1092,7 +1092,10 @@ export default function ChatInputActionsRow({
             </div>
           }
         >
-          <Tooltip title={t("upload.tooltip", "Upload")} mouseEnterDelay={0.4}>
+          <Tooltip
+            title={isMobile ? null : t("upload.tooltip", "Upload")}
+            mouseEnterDelay={0.4}
+          >
             <button
               className={styles.secondaryBtn}
               type="button"

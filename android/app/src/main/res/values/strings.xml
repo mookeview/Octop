@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Octop</string>
+    <string name="connection_title">Your agents, within reach.</string>
+    <string name="connection_description">Connect to Octop to chat, follow tasks and manage your agents.</string>
+    <string name="server_title">Connect to your Octop</string>
+    <string name="server_address_label">Server address</string>
+    <string name="default_server_address" translatable="false">https://octop.mookeview.cn:8880</string>
+    <string name="connect">Connect</string>
+    <string name="connection_hint">Sign in with your existing account on the next screen.</string>
+    <string name="invalid_address">Enter your Octop server address, for example https://octop.example.com.</string>
+    <string name="connection_failed">Could not load Octop. Check your connection and server address, then try again.</string>
+    <string name="connection_timed_out">Octop did not respond within 30 seconds. Check your network or VPN and try again.</string>
+    <string name="certificate_error">The server certificate could not be verified. Check the server address and certificate.</string>
+    <string name="no_file_picker">No app is available to choose files.</string>
+    <string name="http_error">The server returned HTTP %1$d. Try again or check the server address.</string>
+    <string name="external_redirect">This service redirected to %1$s. Open it in your browser or check the configured server address.</string>
+    <string name="retry">Try again</string>
+    <string name="change_server">Change server</string>
+    <string name="no_external_app">No app is available to open this link.</string>
+    <string-array name="authentication_origins" translatable="false">
+        <item>https://auth.mookeview.cn:8880</item>
+        <item>https://nas.mookeview.cn:8880</item>
+    </string-array>
+</resources>
