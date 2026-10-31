@@ -39,6 +39,7 @@ class MainActivity : Activity() {
     private var lastRequestedUrl: String? = null
     private lateinit var fileChooser: WebFileChooser
     private lateinit var systemBars: SystemBarAppearance
+    private lateinit var downloads: WebDownloads
     private val pageTimeout = Runnable {
         browser.stopLoading()
         showError(getString(R.string.connection_timed_out))
@@ -54,6 +55,7 @@ class MainActivity : Activity() {
         progress = findViewById(R.id.page_progress)
         fileChooser = WebFileChooser(this)
         systemBars = SystemBarAppearance(this, findViewById(R.id.root), browser)
+        downloads = WebDownloads(this, browser)
         configureBrowser()
 
         findViewById<View>(R.id.connect).setOnClickListener { connect() }
@@ -112,6 +114,9 @@ class MainActivity : Activity() {
             userAgentString = "$userAgentString OctopAndroid/${BuildConfig.VERSION_NAME}"
         }
         CookieManager.getInstance().setAcceptCookie(true)
+        browser.setDownloadListener { url, _, disposition, mime, _ ->
+            downloads.downloadUrl(url, disposition, mime)
+        }
         WebView.setWebContentsDebuggingEnabled(BuildConfig.DEBUG)
         browser.webChromeClient = object : WebChromeClient() {
             override fun onShowFileChooser(
@@ -142,6 +147,7 @@ class MainActivity : Activity() {
 
             override fun onPageStarted(view: WebView, url: String, favicon: android.graphics.Bitmap?) {
                 fileChooser.cancel()
+                downloads.cancel()
                 pageFailed = false
                 lastRequestedUrl = url
                 findViewById<View>(R.id.connection_failure).visibility = View.GONE
@@ -156,6 +162,7 @@ class MainActivity : Activity() {
                 browser.removeCallbacks(pageTimeout)
                 progress.visibility = View.GONE
                 if (!pageFailed && findViewById<View>(R.id.browser_screen).visibility == View.VISIBLE) {
+                    downloads.install()
                     systemBars.showPage()
                 }
                 if (clearHistoryOnCommit && !pageFailed) {
@@ -208,6 +215,7 @@ class MainActivity : Activity() {
     private fun showConnection() {
         systemBars.showNative()
         fileChooser.cancel()
+        downloads.cancel()
         browser.removeCallbacks(pageTimeout)
         browser.stopLoading()
         findViewById<View>(R.id.connection_screen).visibility = View.VISIBLE
@@ -215,6 +223,7 @@ class MainActivity : Activity() {
     }
 
     private fun showBrowser() {
+        downloads.setServer(server)
         findViewById<View>(R.id.connection_screen).visibility = View.GONE
         findViewById<View>(R.id.browser_screen).visibility = View.VISIBLE
         if (pageFailed) systemBars.showNative() else systemBars.showPage()
@@ -253,6 +262,7 @@ class MainActivity : Activity() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         fileChooser.onResult(requestCode, resultCode, data)
+        downloads.onResult(requestCode, resultCode, data)
     }
 
     private fun openExternal(uri: Uri) {
@@ -300,6 +310,7 @@ class MainActivity : Activity() {
     override fun onDestroy() {
         systemBars.pause()
         fileChooser.cancel()
+        downloads.destroy()
         browser.removeCallbacks(pageTimeout)
         browser.stopLoading()
         browser.destroy()

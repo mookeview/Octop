@@ -20,6 +20,7 @@ function clickDownloadAnchor(blob: Blob, filename: string): void {
 /**
  * Persist a blob as a user download.
  *
+ * Android saves through its origin-restricted document picker bridge.
  * Wails WebView ignores ``<a download>``. On the desktop shell we POST the
  * bytes to Octop (loopback-only) so they land in the host Downloads folder.
  * In-app browsers (WeChat, …) refuse ``blob:`` downloads, so they get a
@@ -30,6 +31,17 @@ export async function saveBlobAsFile(
   filename: string,
 ): Promise<void> {
   const name = filename.trim() || "download";
+  const androidDownloads = (
+    window as Window & {
+      octopAndroidDownloads?: {
+        save: (blob: Blob, filename: string) => Promise<void>;
+      };
+    }
+  ).octopAndroidDownloads;
+  if (androidDownloads) {
+    await androidDownloads.save(blob, name);
+    return;
+  }
   if (isDesktopShell()) {
     const body = new FormData();
     body.append("file", blob, name);

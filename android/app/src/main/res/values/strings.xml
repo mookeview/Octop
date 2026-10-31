@@ -18,6 +18,12 @@
     <string name="retry">Try again</string>
     <string name="change_server">Change server</string>
     <string name="no_external_app">No app is available to open this link.</string>
+    <string name="download_failed">Could not save this file. Try again.</string>
+    <string name="download_busy">Finish or cancel the current save before saving another file.</string>
+    <string name="download_saved">Saved: %1$s</string>
+    <string name="open_file">Open</string>
+    <string name="no_file_viewer">No app can open this file. The file has been saved.</string>
+    <string name="download_webview_unavailable">Update Android System WebView to save files from Octop.</string>
     <string-array name="authentication_origins" translatable="false">
         <item>https://auth.mookeview.cn:8880</item>
         <item>https://nas.mookeview.cn:8880</item>

@@ -326,6 +326,8 @@ export type StreamEventKind = "streamStart" | "streamEnd" | "streamResume";
 export interface StreamEvent {
   kind: StreamEventKind;
   sessionId: string;
+  /** A reconnected socket may have missed tokens before subscribing again. */
+  historyIncomplete?: boolean;
 }
 export type SlashActionEvent = {
   action: string;
@@ -2770,7 +2772,11 @@ export async function attachThread(
       sealInFlightAssistantMessages(state);
     }
     notify(state);
-    emitStreamEvent({ kind: "streamEnd", sessionId });
+    emitStreamEvent({
+      kind: "streamEnd",
+      sessionId,
+      historyIncomplete: resumeAttempt > 0 || opts?.afterUnexpectedDrop,
+    });
     onStreamEnd?.();
   };
 

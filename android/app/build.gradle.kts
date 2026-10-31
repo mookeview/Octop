@@ -12,8 +12,8 @@ android {
         applicationId = "io.github.mookeview.octop"
         minSdk = 26
         targetSdk = 35
-        versionCode = 3
-        versionName = "0.1.2"
+        versionCode = 4
+        versionName = "0.1.3"
         manifestPlaceholders["allowCleartextTraffic"] = "false"
     }
 
@@ -40,5 +40,6 @@ android {
 }
 
 dependencies {
+    implementation("androidx.webkit:webkit:1.12.1")
     testImplementation("junit:junit:4.13.2")
 }

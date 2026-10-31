@@ -11,6 +11,7 @@ import {
   type ThreadProbeResult,
 } from "./useSessions";
 import { EMPTY_CHAT_SESSION_KEY } from "../constants";
+import { hasPendingHitl } from "../utils/pendingHitl";
 
 interface UseChatNavigationParams {
   routeAgentId: string | undefined;
@@ -91,15 +92,46 @@ export function useChatNavigation({
   }, [refreshAgents]);
 
   useEffect(() => {
-    return chatStore.onStreamEvent((event) => {
+    if (!activeThreadId) return;
+    let needsHistory = false;
+    const recoverHistory = () => {
       if (
-        event.kind === "streamEnd" &&
-        event.sessionId === (activeThreadId ?? "")
+        !needsHistory ||
+        document.visibilityState !== "visible" ||
+        isPendingThread(activeThreadId)
+      )
+        return;
+      const snap = chatStore.getSnapshot(activeThreadId);
+      // A paused approval and live team replies still own their local bubbles.
+      if (
+        snap.isStreaming ||
+        snap.messages.some((message) => message.status === "streaming") ||
+        hasPendingHitl(snap.messages)
       ) {
-        void fetchSessions(activeThreadId ?? undefined);
+        return;
       }
+      needsHistory = false;
+      chatStore.invalidateHistory(activeThreadId);
+      void loadHistory(activeThreadId);
+    };
+    const onVisibility = () => {
+      if (document.visibilityState !== "visible") return;
+      needsHistory = true;
+      recoverHistory();
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+    const unsubscribe = chatStore.onStreamEvent((event) => {
+      if (event.sessionId !== activeThreadId || event.kind !== "streamEnd")
+        return;
+      void fetchSessions(activeThreadId);
+      needsHistory ||= Boolean(event.historyIncomplete);
+      recoverHistory();
     });
-  }, [activeThreadId, fetchSessions]);
+    return () => {
+      unsubscribe();
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
+  }, [activeThreadId, fetchSessions, loadHistory]);
 
   // A proactive run (cron) created or wrote to a thread outside the chat socket:
   // refresh the list — and the open thread's history — without a page reload.

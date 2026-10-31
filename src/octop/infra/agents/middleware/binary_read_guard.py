@@ -132,7 +132,7 @@ def _workspace_path(path: str) -> str:
     normalized = path.replace("\\", "/").lstrip("/")
     marker = "/inbound/"
     if marker in f"/{normalized}":
-        return "inbound/" + normalized.rsplit(marker, 1)[1]
+        return "inbound/" + f"/{normalized}".rsplit(marker, 1)[1]
     return normalized
 
 

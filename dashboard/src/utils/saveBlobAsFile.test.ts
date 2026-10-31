@@ -19,10 +19,14 @@ vi.mock("@/utils/antdMessage", () => ({
 
 type DesktopWindow = Window & {
   _wails?: { invoke?: (message: string) => void };
+  octopAndroidDownloads?: {
+    save: (blob: Blob, filename: string) => Promise<void>;
+  };
 };
 
 afterEach(() => {
   delete (window as DesktopWindow)._wails;
+  delete (window as DesktopWindow).octopAndroidDownloads;
   vi.mocked(requestUpload).mockReset();
   vi.mocked(message.success).mockReset();
   vi.mocked(shareDownloadLink).mockReset();
@@ -30,6 +34,33 @@ afterEach(() => {
 });
 
 describe("saveBlobAsFile", () => {
+  it("passes authenticated file bytes and the filename to the Android save picker", async () => {
+    const save = vi.fn().mockResolvedValue(undefined);
+    (window as DesktopWindow).octopAndroidDownloads = { save };
+    const click = vi.spyOn(HTMLAnchorElement.prototype, "click");
+    const blob = new Blob(["hello"], { type: "text/plain" });
+
+    await saveBlobAsFile(blob, " 中文 附件.txt ");
+
+    expect(save).toHaveBeenCalledWith(blob, "中文 附件.txt");
+    expect(click).not.toHaveBeenCalled();
+    expect(requestUpload).not.toHaveBeenCalled();
+    expect(shareDownloadLink).not.toHaveBeenCalled();
+  });
+
+  it("reports Android save errors without falling back to another download", async () => {
+    (window as DesktopWindow).octopAndroidDownloads = {
+      save: vi.fn().mockRejectedValue(new Error("文件保存失败，请重试。")),
+    };
+    const click = vi.spyOn(HTMLAnchorElement.prototype, "click");
+
+    await expect(
+      saveBlobAsFile(new Blob(["hello"]), "note.txt"),
+    ).rejects.toThrow("文件保存失败");
+    expect(click).not.toHaveBeenCalled();
+    expect(requestUpload).not.toHaveBeenCalled();
+  });
+
   it("posts the blob to the host Downloads API in the desktop shell", async () => {
     (window as DesktopWindow)._wails = { invoke: () => undefined };
     const blob = new Blob(["hello"], { type: "text/plain" });

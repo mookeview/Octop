@@ -17,4 +17,10 @@
     <string name="retry">重新连接</string>
     <string name="change_server">修改服务地址</string>
     <string name="no_external_app">没有可打开该链接的应用。</string>
+    <string name="download_failed">文件保存失败，请重试。</string>
+    <string name="download_busy">请先完成或取消当前保存，再保存其他文件。</string>
+    <string name="download_saved">已保存：%1$s</string>
+    <string name="open_file">打开</string>
+    <string name="no_file_viewer">没有可打开此文件的应用，文件已保存。</string>
+    <string name="download_webview_unavailable">请更新 Android 系统 WebView 后再保存 Octop 文件。</string>
 </resources>
