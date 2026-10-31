@@ -12,10 +12,10 @@ import android.provider.DocumentsContract
 import android.provider.OpenableColumns
 import android.util.Base64
 import android.webkit.MimeTypeMap
-import android.webkit.URLUtil
 import android.webkit.WebView
 import android.widget.Toast
 import androidx.webkit.JavaScriptReplyProxy
+import androidx.webkit.URLUtilCompat
 import androidx.webkit.WebViewCompat
 import androidx.webkit.WebViewFeature
 import java.util.Locale
@@ -78,7 +78,7 @@ class WebDownloads(private val activity: Activity, private val browser: WebView)
             toast(R.string.download_failed)
             return
         }
-        val filename = DownloadSink.filename(URLUtil.guessFileName(url, contentDisposition, mime))
+        val filename = DownloadSink.filename(URLUtilCompat.guessFileName(url, contentDisposition, mime))
         browser.evaluateJavascript(
             "window.octopAndroidDownloads?.downloadUrl(${JSONObject.quote(url)}," +
                 "${JSONObject.quote(filename)})", null

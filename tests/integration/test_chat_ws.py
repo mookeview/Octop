@@ -247,6 +247,82 @@ async def test_ws_steer_first_frame_on_new_connection_keeps_stream(env: Any) -> 
     assert frames[-1].get("type") == "done"
 
 
+@pytest.mark.parametrize("initial_message_id", [None, "stage2-initial-7316"])
+async def test_ws_mid_turn_steer_retry_is_delivered_once(
+    env: Any, initial_message_id: str | None
+) -> None:
+    """Retrying an acknowledged addition must not run or display it twice."""
+    c, srv, _fake, auth, _bob_auth, aid = env
+    created = await c.post(f"/api/agents/{aid}/threads", headers=auth)
+    tid = created.json()["thread_id"]
+    agent = srv.app_runtime.agent_registry.get_agent(aid)
+    gate = asyncio.Event()
+    requests: list[dict[str, Any]] = []
+
+    async def controlled_stream(request: dict[str, Any]) -> AsyncIterator[dict[str, Any]]:
+        requests.append(request)
+        if len(requests) == 1:
+            yield {"type": "token", "node": "agent", "content": "working"}
+            await gate.wait()
+        else:
+            yield {"type": "token", "node": "agent", "content": "ADDITION_RECEIVED_4289"}
+
+    agent.stream = controlled_stream
+    frames: list[dict[str, Any]] = []
+    async with _chat_ws(c, aid, auth) as ws:
+        initial_message: dict[str, Any] = {"role": "user", "content": "start"}
+        if initial_message_id is not None:
+            initial_message["id"] = initial_message_id
+        await ws.send_json(
+            {"type": "user_turn", "text": "start", "messages": [initial_message], "thread_id": tid}
+        )
+        while True:
+            frame = await ws.receive_json()
+            frames.append(frame)
+            if frame.get("type") == "token":
+                break
+        addition = {
+            "type": "user_turn",
+            "text": "ADDITION_4289",
+            "thread_id": tid,
+            "delivery": "auto",
+            "client_pending_id": "stage2-addition-4289",
+        }
+        for expected_status in ("queued", "idempotent"):
+            await ws.send_json(addition)
+            while True:
+                frame = await ws.receive_json()
+                frames.append(frame)
+                if frame.get("type") == "steer.ack":
+                    assert frame["status"] == expected_status
+                    break
+        gate.set()
+        while frames[-1].get("type") != "turn.ended":
+            frames.append(await ws.receive_json())
+
+    assert len(requests) == 2
+    message = requests[1]["messages"][-1]
+    content = message.get("content") if isinstance(message, dict) else message.content
+    assert "ADDITION_4289" in str(content)
+    assert sum(frame.get("type") == "steer.drained" for frame in frames) == 1
+    assert sum(frame.get("type") == "turn.resumed" for frame in frames) == 1
+    assert sum(frame.get("content") == "ADDITION_RECEIVED_4289" for frame in frames) == 1
+    assert srv.app_runtime.gateway.ws_hub.is_turn_active(tid) is False
+
+    history = await c.get(f"/api/agents/{aid}/threads/{tid}/history", headers=auth)
+    assert history.status_code == 200
+    assert history.json()["turn_active"] is False
+    additions = [
+        message
+        for message in history.json()["messages"]
+        if message["role"] == "user" and "ADDITION_4289" in str(message.get("content"))
+    ]
+    assert len(additions) == 1
+    drained = next(frame for frame in frames if frame.get("type") == "steer.drained")
+    assert additions[0]["id"] == drained["message_id"]
+    assert additions[0]["id"] != initial_message_id
+
+
 async def test_ws_two_threads_do_not_cross_stream(env: Any) -> None:
     """Two live turns on different threads must not mix tokens across sockets."""
     c, srv, _fake, alice_auth, _bob_auth, aid = env

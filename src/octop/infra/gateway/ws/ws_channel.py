@@ -288,6 +288,7 @@ class WebSocketChannel(BaseChannel):
                     message,
                     text=outcome.text,
                     blocks=outcome.content_blocks,
+                    message_id=outcome.message_id,
                 )
         except Exception as exc:
             failed = True
@@ -471,10 +472,13 @@ def _continuation_inbound(
     original: InboundMessage,
     *,
     text: str,
+    message_id: str,
     blocks: tuple[dict[str, Any], ...] = (),
 ) -> InboundMessage:
     """Clone inbound for a steer continuation (same thread / connection)."""
     meta = dict(original.metadata or {})
+    # A continuation must not reuse the original dashboard bubble's history id.
+    meta["client_message_id"] = message_id
     content = _content_from_steer(text, blocks)
     attachments = inbound_attachments_from_parts(content)
     if attachments:
